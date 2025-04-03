@@ -10,9 +10,12 @@ import SwiftData
 
 @main
 struct DeviceTrackerApp: App {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+    
+    // MARK: - SwiftData configuration
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Device.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,8 +28,10 @@ struct DeviceTrackerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashScreen()
+                .preferredColorScheme(.light) // Only light mode as requested
+                .modelContainer(sharedModelContainer)
+                .defaultAppFont() // SF Pro Rounded olarak ayarla
         }
-        .modelContainer(sharedModelContainer)
     }
 }

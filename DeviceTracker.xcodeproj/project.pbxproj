@@ -10,9 +10,22 @@
 		1784D2FF2D9DF5F000150C91 /* DeviceTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DeviceTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1784D3302D9DFD6D00150C91 /* Exceptions for "DeviceTracker" folder in "DeviceTracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1784D2FE2D9DF5F000150C91 /* DeviceTracker */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1784D3012D9DF5F000150C91 /* DeviceTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1784D3302D9DFD6D00150C91 /* Exceptions for "DeviceTracker" folder in "DeviceTracker" target */,
+			);
 			path = DeviceTracker;
 			sourceTree = "<group>";
 		};
@@ -255,6 +268,10 @@
 				DEVELOPMENT_TEAM = PZ22MVLYZ5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DeviceTracker/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth Always Usage";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "DeviceTracker uygulaması cihazınızın konumunu sürekli takip edebilmek için arka planda konum erişimi istiyor.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "DeviceTracker uygulaması Bluetooth cihazınızı bulmak için konumunuza erişmek istiyor";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -284,6 +301,10 @@
 				DEVELOPMENT_TEAM = PZ22MVLYZ5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DeviceTracker/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth Always Usage";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "DeviceTracker uygulaması cihazınızın konumunu sürekli takip edebilmek için arka planda konum erişimi istiyor.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "DeviceTracker uygulaması Bluetooth cihazınızı bulmak için konumunuza erişmek istiyor";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
