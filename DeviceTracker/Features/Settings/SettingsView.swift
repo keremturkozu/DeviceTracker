@@ -57,9 +57,15 @@ struct SettingsView: View {
                     
                     // SHARING
                     Section {
-                        Button {
-                            shareApp()
-                        } label: {
+                        ShareLink(
+                            item: URL(string: "https://example.com/devicetracker")!,
+                            subject: Text("DeviceTracker App"),
+                            message: Text("Check out DeviceTracker app to find your devices!"),
+                            preview: SharePreview(
+                                "DeviceTracker",
+                                image: Image(systemName: "antenna.radiowaves.left.and.right")
+                            )
+                        ) {
                             HStack {
                                 Label("Share DeviceTracker", systemImage: "square.and.arrow.up")
                                 Spacer()
@@ -67,8 +73,8 @@ struct SettingsView: View {
                                     .font(.footnote)
                                     .foregroundColor(.gray)
                             }
+                            .foregroundColor(.primary)
                         }
-                        .foregroundColor(.primary)
                     } header: {
                         Text("SHARING")
                     }
@@ -131,31 +137,6 @@ struct SettingsView: View {
                     .foregroundColor(Theme.primary)
                 }
             }
-        }
-    }
-    
-    func shareApp() {
-        // Share functionality - fixed to work with SwiftUI
-        let appURL = URL(string: "https://example.com/devicetracker")!
-        let message = "Check out DeviceTracker app to find your devices!"
-        
-        let activityVC = UIActivityViewController(
-            activityItems: [message, appURL],
-            applicationActivities: nil
-        )
-        
-        // Get the current window scene and present the share sheet
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            
-            // On iPad, we need to specify a source for the popover
-            if let popoverController = activityVC.popoverPresentationController {
-                popoverController.sourceView = rootViewController.view
-                popoverController.sourceRect = CGRect(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY, width: 0, height: 0)
-                popoverController.permittedArrowDirections = []
-            }
-            
-            rootViewController.present(activityVC, animated: true)
         }
     }
     

@@ -295,7 +295,7 @@ struct EnhancedRadarView: View {
                     radarAngle = 360
                 }
             }
-            .onChange(of: geometry.size) { newSize in
+            .onChange(of: geometry.size) { _, newSize in
                 self.viewSize = newSize
                 // Recalculate positions when view size changes
                 updateDevicePositions()
@@ -322,10 +322,6 @@ struct EnhancedRadarView: View {
         
         // Calculate distance from center to device
         let distance = sqrt(dx*dx + dy*dy)
-        
-        // Calculate unit vector
-        let unitDx = dx / max(distance, 0.01) // Avoid division by zero
-        let unitDy = dy / max(distance, 0.01)
         
         // Calculate angle in degrees
         let angle = atan2(dy, dx) * 180 / .pi

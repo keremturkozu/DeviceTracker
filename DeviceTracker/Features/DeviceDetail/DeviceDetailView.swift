@@ -153,8 +153,8 @@ struct DeviceDetailView: View {
                 }
             }
         }
-        .onChange(of: viewModel.errorMessage) {
-            if let message = viewModel.errorMessage {
+        .onChange(of: viewModel.errorMessage) { _, errorMessage in
+            if let message = errorMessage {
                 alertItem = DeviceAlertItem(message: message)
                 // Clear the error message after showing alert
                 viewModel.errorMessage = nil
