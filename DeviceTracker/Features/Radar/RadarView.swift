@@ -40,8 +40,8 @@ struct RadarView: View {
                     .padding(.horizontal)
                     .padding(.top, 10)
                     
-                    // Radar Display
-                    RadarDisplayView(devices: viewModel.devices)
+                    // Radar Display - slightly reduced height
+                    EnhancedRadarView(devices: viewModel.devices)
                         .frame(height: 260)
                         .padding(.top, 5)
                     
@@ -87,18 +87,24 @@ struct RadarView: View {
                     }
                     .frame(maxHeight: .infinity)
                     
-                    // Search Button
+                    // Search Button - thicker and blue color
                     Button {
                         viewModel.toggleScanning()
                     } label: {
                         HStack {
-                            Image(systemName: viewModel.isScanning ? "stop.fill" : "magnifyingglass")
+                            Image(systemName: viewModel.isScanning ? "stop.circle" : "play.circle")
                             Text(viewModel.isScanning ? "Stop Scanning" : "Search Devices")
                                 .font(.system(size: 16, weight: .bold, design: .rounded))
                         }
                         .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12) // Increased padding
+                        .foregroundColor(.white)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(viewModel.isScanning ? Color.red : Theme.primary) // Changed to Theme.primary
+                                .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 2)
+                        )
                     }
-                    .buttonStyle(.primary)
                     .padding(.horizontal)
                     .padding(.bottom, 10)
                 }
@@ -133,176 +139,216 @@ struct RadarView: View {
     }
 }
 
-// MARK: - Helper Views
+// MARK: - Enhanced Radar View
 
-struct RadarDisplayView: View {
+struct EnhancedRadarView: View {
     let devices: [Device]
     
+    @Environment(\.colorScheme) private var colorScheme
     @State private var radarAngle: Double = 0
-    @State private var pulsateRings = false
-    @State private var glowEffect = false
-    @State private var showDeviceLabels = true
+    @State private var pulsateAnimation = false
     @State private var devicePositions: [UUID: (position: CGPoint, opacity: Double)] = [:]
     
-    let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
-    private let centerPoint: CGPoint = CGPoint(x: 130, y: 130)
-    private let radarRadius: CGFloat = 130
+    let timer = Timer.publish(every: 0.03, on: .main, in: .common).autoconnect()
+    
+    // Radar geometry properties
+    @State private var viewSize: CGSize = .zero
+    private var radarRadius: CGFloat {
+        min(viewSize.width, viewSize.height) / 2 - 10 // 10px padding from edges
+    }
+    private var centerPoint: CGPoint {
+        CGPoint(x: viewSize.width / 2, y: viewSize.height / 2)
+    }
     
     // Custom radar colors
-    private let radarLineColor = Color(hex: "45D455") // Bright green
-    private let radarRingColor = Color(hex: "45D455") // Bright green
+    private let radarLineColor = Color(hex: "45D455")
+    private let radarRingColor = Color(hex: "45D455").opacity(0.7)
+    private let radarInnerRingColor = Color(hex: "45D455").opacity(0.3)
+    private let radarBackgroundColor = Color.white.opacity(0.98)
     
     var body: some View {
-        ZStack {
-            // Clean light background with clip shape
-            Circle()
-                .fill(Color.white.opacity(0.98))
-                .overlay(
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    radarLineColor.opacity(0.7),
-                                    radarLineColor.opacity(0.4)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1.5
-                        )
-                )
-                .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 0)
-                .frame(width: radarRadius * 2, height: radarRadius * 2)
-            
-            // Radar Rings with green appearance
-            ForEach([0.33, 0.66, 1.0], id: \.self) { scale in
-                Circle()
-                    .stroke(
-                        radarRingColor.opacity(0.2),
-                        lineWidth: 1
-                    )
-                    .frame(width: radarRadius * 2 * scale, height: radarRadius * 2 * scale)
-            }
-            
-            // Very subtle grid pattern
+        GeometryReader { geometry in
             ZStack {
-                ForEach(0..<8) { i in
-                    Rectangle()
-                        .fill(radarRingColor.opacity(0.05))
-                        .frame(width: 0.5, height: radarRadius * 2)
-                        .rotationEffect(.degrees(Double(i) * 22.5))
-                }
-            }
-            .frame(width: radarRadius * 2, height: radarRadius * 2)
-            
-            // Single clean radar line with light sweep effect
-            ZStack {
-                // Base radar line
-                Rectangle()
-                    .fill(radarLineColor.opacity(0.8))
-                    .frame(width: 2, height: radarRadius)
-                    
-                // Slight glow at the end of the radar line
+                // Radar background
                 Circle()
-                    .fill(radarLineColor.opacity(0.3))
-                    .frame(width: 8, height: 8)
-                    .offset(y: -radarRadius + 4)
-                    .blur(radius: 1)
-            }
-            .offset(y: -radarRadius/2)
-            .position(centerPoint)
-            .rotationEffect(.degrees(radarAngle), anchor: .center)
-            
-            // Clip the radar line to the circle
-            .clipShape(Circle().size(CGSize(width: radarRadius * 2, height: radarRadius * 2)))
-            
-            // My Device in center
-            Circle()
-                .fill(
-                    RadialGradient(
-                        gradient: Gradient(colors: [
-                            radarLineColor,
-                            radarLineColor.opacity(0.8)
-                        ]),
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 6
+                    .stroke(radarRingColor, lineWidth: 2)
+                    .background(Circle().fill(radarBackgroundColor))
+                    .overlay(
+                        Circle()
+                            .stroke(radarInnerRingColor, lineWidth: 1)
+                            .scaleEffect(0.75)
                     )
-                )
-                .frame(width: 10, height: 10)
-                .overlay(
-                    Circle()
-                        .stroke(Color.white, lineWidth: 1.5)
-                )
-                .shadow(color: radarLineColor.opacity(0.5), radius: 3, x: 0, y: 0)
-                .position(centerPoint)
-            
-            // Plot Devices with clean labels
-            ForEach(devices, id: \.id) { device in
-                let position = devicePositions[device.id]?.position ?? 
-                    getInitialDevicePosition(normalizedDistance: getNormalizedDistance(device: device), deviceName: device.name, devices: devices)
+                    .overlay(
+                        Circle()
+                            .stroke(radarInnerRingColor, lineWidth: 1)
+                            .scaleEffect(0.5)
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(radarInnerRingColor, lineWidth: 1)
+                            .scaleEffect(0.25)
+                    )
+                    .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
                 
+                // Radar line with gradient
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [radarLineColor, radarLineColor.opacity(0)]),
+                            startPoint: .center,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: radarRadius, height: 3)
+                    .offset(x: radarRadius/2)
+                    .rotationEffect(Angle(degrees: radarAngle))
+                
+                // Center dot
+                Circle()
+                    .fill(radarLineColor)
+                    .frame(width: 8, height: 8)
+                
+                // Clip view to ensure devices don't appear outside radar
                 ZStack {
-                    // Device indicator
-                    Circle()
-                        .fill(getDeviceColor(distance: device.distance))
-                        .frame(width: 8, height: 8)
-                        .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
-                    
-                    // Device label
-                    if showDeviceLabels {
-                        VStack(spacing: 0) {
-                            // Device name tag
-                            Text(device.name)
-                                .font(.system(size: 10, weight: .medium, design: .rounded))
-                                .foregroundColor(.white)
+                    // Device dots on radar
+                    ForEach(devices, id: \.id) { device in
+                        let distanceNormalized = getNormalizedDistance(device: device)
+                        let position = devicePositions[device.id]?.position ?? 
+                            getInitialDevicePosition(normalizedDistance: distanceNormalized, deviceName: device.name, devices: devices)
+                        
+                        ZStack {
+                            // Outer ring (signal indicator)
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 20, height: 20)
+                            
+                            // Inner dot (device)
+                            Circle()
+                                .fill(getDeviceColor(distance: device.distance))
+                                .frame(width: 14, height: 14)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white, lineWidth: 1)
+                                        .opacity(0.7)
+                                )
+                        }
+                        .shadow(color: getDeviceColor(distance: device.distance).opacity(0.6), radius: 3, x: 0, y: 0)
+                        .position(position)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: position)
+                        
+                        // Device labels - ensure they stay inside radar boundary
+                        VStack(spacing: 2) {
+                            Text(device.name.count > 15 ? String(device.name.prefix(12)) + "..." : device.name)
+                                .font(.system(size: 10, weight: .medium))
+                                .lineLimit(1)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 3)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(Color.black.opacity(0.7))
-                                )
-                            
-                            // Distance pill
-                            Text(device.distance < 1 ? "Very close" : "\(Int(device.distance))m")
-                                .font(.system(size: 8, weight: .medium, design: .rounded))
+                                .background(Color.black.opacity(0.7))
                                 .foregroundColor(.white)
+                                .cornerRadius(4)
+                            
+                            // Distance indicator
+                            Text(device.distance < 1 ? "Very close" : "\(Int(device.distance))m")
+                                .font(.system(size: 8))
                                 .padding(.horizontal, 4)
                                 .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(getDeviceColor(distance: device.distance))
-                                )
-                                .offset(y: -3)
+                                .background(Color(getDeviceColor(distance: device.distance)).opacity(0.8))
+                                .foregroundColor(.white)
+                                .cornerRadius(3)
                         }
-                        .offset(y: -18)
+                        // Position labels with consideration for radar edges and label visibility
+                        .position(getOptimalLabelPosition(devicePosition: position, radarCenter: centerPoint, radarRadius: radarRadius))
                         .opacity(devicePositions[device.id]?.opacity ?? 1.0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: position)
                     }
                 }
-                .position(position)
-                .animation(.easeInOut(duration: 0.3), value: position)
+                .clipShape(Circle())
+                
+                // Scanning pulse effect
+                Circle()
+                    .trim(from: 0, to: 0.25)
+                    .stroke(radarLineColor.opacity(0.5), lineWidth: 4)
+                    .rotationEffect(Angle(degrees: radarAngle))
+                
+                // Pulse effect
+                Circle()
+                    .stroke(radarLineColor.opacity(0.15), lineWidth: 2)
+                    .scaleEffect(pulsateAnimation ? 1.0 : 0.97)
+                    .animation(
+                        Animation.easeInOut(duration: 1.5)
+                            .repeatForever(autoreverses: true),
+                        value: pulsateAnimation
+                    )
             }
-        }
-        .frame(width: 260, height: 260)
-        .onAppear {
-            // Initialize device positions
-            updateDevicePositions()
-            
-            // Set up animations
-            pulsateRings = true
-            glowEffect = true
-            
-            // Set up continuous rotation
-            withAnimation(Animation.linear(duration: 3).repeatForever(autoreverses: false)) {
-                radarAngle = 360
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .onAppear {
+                self.viewSize = geometry.size
+                
+                // Initialize device positions
+                updateDevicePositions()
+                
+                // Start animations
+                pulsateAnimation = true
+                
+                // Set up continuous rotation
+                withAnimation(Animation.linear(duration: 3).repeatForever(autoreverses: false)) {
+                    radarAngle = 360
+                }
             }
-        }
-        .onReceive(timer) { _ in
-            // Update device positions less frequently
-            if devicePositions.count <= 5 || Int.random(in: 0...2) == 0 {
+            .onChange(of: geometry.size) { newSize in
+                self.viewSize = newSize
+                // Recalculate positions when view size changes
                 updateDevicePositions()
             }
+            .onReceive(timer) { _ in
+                // Rotate radar line continuously
+                withAnimation {
+                    radarAngle = (radarAngle + 2).truncatingRemainder(dividingBy: 360)
+                }
+                
+                // Update device positions less frequently
+                if Int.random(in: 0...10) == 0 {
+                    updateDevicePositions()
+                }
+            }
         }
+    }
+    
+    // Get optimal position for device label to ensure visibility and prevent clipping
+    private func getOptimalLabelPosition(devicePosition: CGPoint, radarCenter: CGPoint, radarRadius: CGFloat) -> CGPoint {
+        // Calculate vector from center to device
+        let dx = devicePosition.x - radarCenter.x
+        let dy = devicePosition.y - radarCenter.y
+        
+        // Calculate distance from center to device
+        let distance = sqrt(dx*dx + dy*dy)
+        
+        // Calculate unit vector
+        let unitDx = dx / max(distance, 0.01) // Avoid division by zero
+        let unitDy = dy / max(distance, 0.01)
+        
+        // Calculate angle in degrees
+        let angle = atan2(dy, dx) * 180 / .pi
+        
+        // Decide label position based on angle
+        // For devices on the right half of the radar, place label to the left of the device
+        // For devices on the left half, place label to the right of the device
+        let isRightHalf = abs(angle) < 90
+        
+        let labelOffsetY = 18.0 // Vertical offset
+        
+        var labelX = devicePosition.x
+        let labelY = devicePosition.y + labelOffsetY
+        
+        // Add horizontal offset to labels on right side to prevent clipping
+        if isRightHalf && devicePosition.x > radarCenter.x + radarRadius * 0.5 {
+            labelX = min(devicePosition.x, radarCenter.x + radarRadius - 60) // Ensure labels don't go off the right edge
+        }
+        
+        // Ensure the label Y position doesn't exceed the radar boundary
+        let maxY = radarCenter.y + radarRadius - 30 // 30px from edge
+        
+        return CGPoint(x: labelX, y: min(labelY, maxY))
     }
     
     private func updateDevicePositions() {
@@ -317,8 +363,10 @@ struct RadarDisplayView: View {
                     let randomOffsetY = CGFloat.random(in: -0.5...0.5)
                     
                     let newPosition = CGPoint(
-                        x: min(max(existingPosition.x + randomOffsetX, 0), 260),
-                        y: min(max(existingPosition.y + randomOffsetY, 0), 260)
+                        x: min(max(existingPosition.x + randomOffsetX, centerPoint.x - radarRadius),
+                              centerPoint.x + radarRadius),
+                        y: min(max(existingPosition.y + randomOffsetY, centerPoint.y - radarRadius),
+                              centerPoint.y + radarRadius)
                     )
                     
                     // Pulse opacity effect based on the radar sweep
@@ -347,8 +395,11 @@ struct RadarDisplayView: View {
     }
     
     private func getNormalizedDistance(device: Device) -> Double {
+        // Adjust to keep items more inside the radar
         let distance = min(device.distance, 5)
-        return 1 - (distance / 5)
+        // Scale factor to keep items away from edge
+        let scaleFactor = 0.8
+        return (1 - (distance / 5)) * scaleFactor
     }
     
     private func getInitialDevicePosition(normalizedDistance: Double, deviceName: String, devices: [Device]) -> CGPoint {
@@ -401,14 +452,16 @@ struct RadarDisplayView: View {
     
     private func getDeviceColor(distance: Double) -> Color {
         if distance < 1 {
-            return Color(hex: "45D455") // Green for close devices
+            return Color.green // Green for close devices
         } else if distance < 2 {
-            return Color(hex: "FFA500") // Orange for mid-range
+            return Color.orange // Orange for mid-range
         } else {
-            return Color(hex: "FF5C5C") // Red for far devices
+            return Color.red // Red for far devices
         }
     }
 }
+
+// MARK: - Device Row View
 
 struct DeviceRowView: View {
     let device: Device

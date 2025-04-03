@@ -30,7 +30,7 @@ struct SettingsView: View {
                             Label {
                                 Text("Bluetooth")
                             } icon: {
-                                Image(systemName: "wifi.circle")
+                                Image(systemName: "antenna.radiowaves.left.and.right")
                                     .foregroundColor(.green)
                             }
                             
@@ -135,22 +135,33 @@ struct SettingsView: View {
     }
     
     func shareApp() {
-        // Uygulama paylaşma işlevi
-        let url = URL(string: "https://example.com/devicetracker")!
-        let activityVC = UIActivityViewController(activityItems: [
-            "Check out DeviceTracker app to find your devices!",
-            url
-        ], applicationActivities: nil)
+        // Share functionality - fixed to work with SwiftUI
+        let appURL = URL(string: "https://example.com/devicetracker")!
+        let message = "Check out DeviceTracker app to find your devices!"
         
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = scene.windows.first?.rootViewController {
-            rootVC.present(activityVC, animated: true)
+        let activityVC = UIActivityViewController(
+            activityItems: [message, appURL],
+            applicationActivities: nil
+        )
+        
+        // Get the current window scene and present the share sheet
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+            
+            // On iPad, we need to specify a source for the popover
+            if let popoverController = activityVC.popoverPresentationController {
+                popoverController.sourceView = rootViewController.view
+                popoverController.sourceRect = CGRect(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY, width: 0, height: 0)
+                popoverController.permittedArrowDirections = []
+            }
+            
+            rootViewController.present(activityVC, animated: true)
         }
     }
     
     func contactSupport() {
-        // E-posta uygulamasını açma işlevi
-        let email = "support@devicetracker.com"
+        // Updated email address
+        let email = "turkozukerem@gmail.com"
         if let url = URL(string: "mailto:\(email)") {
             UIApplication.shared.open(url)
         }

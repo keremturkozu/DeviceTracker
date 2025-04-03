@@ -16,7 +16,7 @@ struct SplashScreen: View {
             }
         } else {
             ZStack {
-                Color(UIColor.systemBackground)
+                Theme.background
                     .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
