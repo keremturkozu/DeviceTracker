@@ -154,7 +154,7 @@ struct EnhancedRadarView: View {
     // Radar geometry properties
     @State private var viewSize: CGSize = .zero
     private var radarRadius: CGFloat {
-        min(viewSize.width, viewSize.height) / 2 - 10 // 10px padding from edges
+        max(min(viewSize.width, viewSize.height) / 2 - 10, 1) // Ensure radius is always positive and at least 1
     }
     private var centerPoint: CGPoint {
         CGPoint(x: viewSize.width / 2, y: viewSize.height / 2)
@@ -191,17 +191,19 @@ struct EnhancedRadarView: View {
                     .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
                 
                 // Radar line with gradient
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [radarLineColor, radarLineColor.opacity(0)]),
-                            startPoint: .center,
-                            endPoint: .trailing
+                if radarRadius > 1 { // Only show radar line if we have a valid radius
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [radarLineColor, radarLineColor.opacity(0)]),
+                                startPoint: .center,
+                                endPoint: .trailing
+                            )
                         )
-                    )
-                    .frame(width: radarRadius, height: 3)
-                    .offset(x: radarRadius/2)
-                    .rotationEffect(Angle(degrees: radarAngle))
+                        .frame(width: radarRadius, height: 3)
+                        .offset(x: radarRadius/2)
+                        .rotationEffect(Angle(degrees: radarAngle))
+                }
                 
                 // Center dot
                 Circle()
@@ -282,7 +284,7 @@ struct EnhancedRadarView: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
             .onAppear {
-                self.viewSize = geometry.size
+                self.viewSize = CGSize(width: max(geometry.size.width, 2), height: max(geometry.size.height, 2))
                 
                 // Initialize device positions
                 updateDevicePositions()
@@ -296,7 +298,7 @@ struct EnhancedRadarView: View {
                 }
             }
             .onChange(of: geometry.size) { _, newSize in
-                self.viewSize = newSize
+                self.viewSize = CGSize(width: max(newSize.width, 2), height: max(newSize.height, 2))
                 // Recalculate positions when view size changes
                 updateDevicePositions()
             }
