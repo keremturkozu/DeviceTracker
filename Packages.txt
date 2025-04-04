@@ -1,0 +1,1 @@
+dependencies: packages: RevenueCat (url: https://github.com/RevenueCat/purchases-ios, exact: 4.34.0)

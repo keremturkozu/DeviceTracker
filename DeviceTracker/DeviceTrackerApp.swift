@@ -7,10 +7,12 @@
 
 import SwiftUI
 import SwiftData
+import StoreKit
 
 @main
 struct DeviceTrackerApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+    @StateObject private var storeKitHelper = StoreKitHelper.shared
     
     // MARK: - SwiftData configuration
     var sharedModelContainer: ModelContainer = {
@@ -32,6 +34,11 @@ struct DeviceTrackerApp: App {
                 .preferredColorScheme(.light) // Only light mode as requested
                 .modelContainer(sharedModelContainer)
                 .defaultAppFont() // SF Pro Rounded olarak ayarla
+                .task {
+                    // Uygulama başladığında StoreKit ile ürünleri yükle
+                    await storeKitHelper.loadProducts()
+                    await storeKitHelper.updatePurchasedProducts()
+                }
         }
     }
 }
