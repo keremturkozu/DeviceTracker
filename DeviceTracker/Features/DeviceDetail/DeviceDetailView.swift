@@ -4,7 +4,7 @@ import MapKit
 struct DeviceDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: DeviceDetailViewModel
-    @State private var navigateToChat = false
+    @State private var navigateToSignal = false
     @State private var mapItem: MKMapItem?
     @State private var isShowingMap = false
     @State private var showChatSheet = false
@@ -30,11 +30,16 @@ struct DeviceDetailView: View {
                     
                     // Battery indicator circle - only visible when connected
                     if viewModel.isConnected {
+                        // Circular battery indicator background track
+                        Circle()
+                            .stroke(viewModel.device.batteryColor.opacity(0.2), lineWidth: 4)
+                            .frame(width: 178, height: 178)
+                        
                         // Circular battery indicator
                         Circle()
                             .trim(from: 0, to: CGFloat(viewModel.device.batteryLevel) / 100)
-                            .fill(viewModel.device.batteryColor)
-                            .frame(width: 180, height: 180)
+                            .stroke(viewModel.device.batteryColor, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                            .frame(width: 178, height: 178)
                             .rotationEffect(.degrees(-90)) // Start from top
                         
                         // Battery percentage
@@ -81,7 +86,7 @@ struct DeviceDetailView: View {
                     }
                     
                     actionButton(title: "Last Seen", iconName: "clock.fill") {
-                        // Display only
+                        // Boş action, sadece bilgi göstersin
                     }
                     .overlay(
                         VStack {
@@ -93,8 +98,8 @@ struct DeviceDetailView: View {
                         }
                     )
                     
-                    actionButton(title: "Chat", iconName: "message.fill") {
-                        viewModel.startChat()
+                    actionButton(title: "Signal", iconName: "waveform") {
+                        viewModel.startSignal()
                     }
                 }
                 .padding(.horizontal)
@@ -167,6 +172,9 @@ struct DeviceDetailView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .navigationDestination(isPresented: $viewModel.navigateToSignal) {
+            SignalView(device: viewModel.device)
+        }
         .navigationDestination(isPresented: $viewModel.navigateToChat) {
             ChatView(device: viewModel.device)
         }
@@ -176,11 +184,11 @@ struct DeviceDetailView: View {
             } else {
                 // Konum bulunamadığında kullanıcıya bilgi verelim
                 VStack {
-                    Text("Konum bilgisi alınamadı")
+                    Text("Location information not available")
                         .font(.headline)
                         .padding()
                     
-                    Button("Kapat") {
+                    Button("Close") {
                         viewModel.navigateToMap = false
                     }
                     .buttonStyle(.borderedProminent)
@@ -197,8 +205,10 @@ struct DeviceDetailView: View {
             return "iphone"
         } else if name.contains("macbook") || name.contains("laptop") {
             return "laptopcomputer"
-        } else if name.contains("airpods") || name.contains("headphone") || name.contains("earphone") {
-            return "airpodspro"
+        } else if name.contains("airpods") || name.contains("headphone") || name.contains("earphone") || 
+                  name.contains("buds") || name.contains("jbl") || name.contains("earpods") || 
+                  name.contains("beats") || name.contains("pod") || name.contains("earbuds") {
+            return "airpodspro" // Tüm kulaklık türleri için aynı ikonu kullan
         } else if name.contains("ipad") || name.contains("tablet") {
             return "ipad"
         } else if name.contains("watch") {
@@ -206,7 +216,13 @@ struct DeviceDetailView: View {
         } else if name.contains("tv") || name.contains("television") {
             return "tv"
         }
-        return "laptopcomputer"
+        
+        // Eğer belirli bir eşleşme bulunamazsa, cihazın muhtemel türüne göre varsayılan bir ikon seç
+        if name.contains("audio") || name.contains("sound") || name.contains("speaker") {
+            return "hifispeaker"
+        }
+        
+        return "laptopcomputer" // Varsayılan olarak bilgisayar ikonu
     }
     
     @ViewBuilder
