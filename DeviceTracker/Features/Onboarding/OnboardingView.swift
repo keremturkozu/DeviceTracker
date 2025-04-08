@@ -49,7 +49,7 @@ struct OnboardingView: View {
                         .padding(.horizontal)
                         .padding(.top)
                         .foregroundColor(Theme.primary)
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
                     }
                 }
                 
@@ -88,12 +88,12 @@ struct OnboardingView: View {
                     }) {
                         HStack {
                             Text(currentPage < pages.count - 1 ? "Next" : "Get Started")
-                                .fontWeight(.semibold)
+                                .font(.system(size: 18, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
                             
                             if currentPage < pages.count - 1 {
                                 Image(systemName: "arrow.right")
-                                    .font(.system(size: 15, weight: .semibold))
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
                                     .foregroundColor(.white)
                             }
                         }
@@ -115,30 +115,44 @@ struct OnboardingView: View {
         VStack(spacing: 30) {
             Spacer(minLength: 30)
             
-            // Onboarding image
-            Image(page.imageName)
-                .resizable()
-                .scaledToFit()
-                .frame(width: page.imageSize.width, height: page.imageSize.height)
-                .padding(.horizontal)
-                .accessibilityHidden(true)
+            // Onboarding image with soft edges - improved to remove excess whitespace
+            ZStack {
+                Theme.background
+                    .cornerRadius(24)
+                
+                Image(page.imageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: page.imageSize.width, height: page.imageSize.height)
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
+            }
+            .frame(width: page.imageSize.width, height: page.imageSize.height)
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(Theme.primary.opacity(0.1), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+            .padding(.horizontal)
+            .accessibilityHidden(true)
             
             Spacer(minLength: 30)
             
             VStack(spacing: 20) {
-                // Title
+                // Title with modern style
                 Text(page.title)
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundColor(Theme.primary)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal)
                 
-                // Description
+                // Description with modern style
                 Text(page.description)
-                    .font(.system(size: 16))
+                    .font(.system(size: 16, weight: .medium, design: .rounded))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 30)
+                    .lineSpacing(4)
             }
             
             Spacer(minLength: 90)

@@ -18,34 +18,43 @@ struct SplashScreen: View {
                 .onAppear {
                     // Her uygulama açılışında premium kullanıcı değilse ekranı göster
                     if !isPremiumUser {
-                        // Show premium screen after a short delay
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            showPremium = true
-                        }
+                        // Ekranı hemen göster, gecikme olmadan
+                        showPremium = true
                     }
                 }
         } else {
             // Splash animation
             ZStack {
-                Theme.background
+                Color.white
                     .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    // App Logo
-                    Image("AppLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 200, height: 200)
+                    // App logo with soft edges and stroke
+                    ZStack {
+                        Image("AppLogo")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 150, height: 150)
+                            .clipShape(RoundedRectangle(cornerRadius: 30))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .stroke(Color.white, lineWidth: 4)
+                            )
+                            .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: 5)
+                    }
                     
-                    // App Name
-                    Text("DeviceTracker")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundColor(Theme.primary)
-                    
-                    // Tagline
-                    Text("Find your devices, effortlessly")
-                        .font(.system(size: 15))
-                        .foregroundColor(.secondary)
+                    VStack(spacing: 8) {
+                        // App name with shadow for elegant appearance
+                        Text("DeviceTracker")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundColor(Theme.primary)
+                            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                        
+                        // Tagline/subtitle
+                        Text("Find your devices easily")
+                            .font(.system(size: 17, weight: .medium, design: .rounded))
+                            .foregroundColor(Color.gray)
+                    }
                 }
                 .scaleEffect(scale)
                 .opacity(opacity)
