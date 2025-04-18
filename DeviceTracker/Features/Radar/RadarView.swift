@@ -525,6 +525,8 @@ struct DeviceRowView: View {
             return "applewatch"
         } else if name.contains("tv") || name.contains("television") {
             return "tv"
+        } else if name.contains("jbl") || name.contains("tune") || name.contains("speaker") || name.contains("sound") {
+            return "hifispeaker.fill"
         }
         return "laptopcomputer"
     }

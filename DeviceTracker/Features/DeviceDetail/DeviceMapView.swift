@@ -393,6 +393,8 @@ struct DeviceMapView: View {
             return "ipad"
         } else if name.contains("watch") {
             return "applewatch"
+        } else if name.contains("jbl") || name.contains("tune") || name.contains("speaker") || name.contains("sound") {
+            return "hifispeaker.fill"
         }
         
         return "laptopcomputer" // Default

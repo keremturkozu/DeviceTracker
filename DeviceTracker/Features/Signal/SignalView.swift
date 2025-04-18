@@ -221,7 +221,7 @@ struct SignalView: View {
         } else if name.contains("macbook") || name.contains("laptop") {
             return "laptopcomputer"
         } else if name.contains("airpods") || name.contains("headphone") || name.contains("earphone") || 
-                  name.contains("buds") || name.contains("jbl") || name.contains("earpods") || 
+                  name.contains("buds") || name.contains("earpods") || 
                   name.contains("beats") || name.contains("pod") || name.contains("earbuds") {
             return "airpodspro" // All headphone types use the same icon
         } else if name.contains("ipad") || name.contains("tablet") {
@@ -230,11 +230,8 @@ struct SignalView: View {
             return "applewatch"
         } else if name.contains("tv") || name.contains("television") {
             return "tv"
-        }
-        
-        // If no specific match, choose a default icon based on likely device type
-        if name.contains("audio") || name.contains("sound") || name.contains("speaker") {
-            return "hifispeaker"
+        } else if name.contains("jbl") || name.contains("tune") || name.contains("speaker") || name.contains("sound") {
+            return "hifispeaker.fill"
         }
         
         return "laptopcomputer" // Default to computer icon
