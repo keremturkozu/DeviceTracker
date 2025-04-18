@@ -517,7 +517,7 @@ struct DeviceRowView: View {
             return "iphone"
         } else if name.contains("macbook") || name.contains("laptop") {
             return "laptopcomputer"
-        } else if name.contains("airpods") || name.contains("buds") || name.contains("headphone") || name.contains("earphone") {
+        } else if name.contains("airpods") || name.contains("buds") || name.contains("headphone") || name.contains("earphone") || name.contains("jbl") || name.contains("tune") {
             return "airpodspro"
         } else if name.contains("ipad") || name.contains("tablet") {
             return "ipad"
@@ -525,7 +525,7 @@ struct DeviceRowView: View {
             return "applewatch"
         } else if name.contains("tv") || name.contains("television") {
             return "tv"
-        } else if name.contains("jbl") || name.contains("tune") || name.contains("speaker") || name.contains("sound") {
+        } else if name.contains("speaker") || name.contains("sound") {
             return "hifispeaker.fill"
         }
         return "laptopcomputer"

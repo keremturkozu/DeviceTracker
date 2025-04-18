@@ -8,9 +8,9 @@ class StoreKitHelper: ObservableObject {
     static let shared = StoreKitHelper()
     
     // Ürün tanımlayıcıları - App Store Connect'te tanımladığınız ID'lerle değiştirin
-    private let weeklySubscriptionID = "com.yourcompany.devicetracker.weekly_premium"
-    private let yearlySubscriptionID = "com.yourcompany.devicetracker.yearly_premium"
-    private let lifetimeSubscriptionID = "com.yourcompany.devicetracker.lifetime_premium"
+    private let weeklySubscriptionID = "com.keremturkozu.DeviceTracker.weekly_premium"
+    private let yearlySubscriptionID = "com.keremturkozu.DeviceTracker.yearly_premium"
+    private let lifetimeSubscriptionID = "com.keremturkozu.DeviceTracker.lifetimepremium"
     
     // Ürünler
     @Published private(set) var products: [Product] = []
@@ -76,21 +76,34 @@ class StoreKitHelper: ObservableObject {
     @MainActor
     func loadProducts() async {
         do {
-            // Tüm ürünleri ID'lere göre yükle
-            let products = try await Product.products(for: [
+            let productIDs = [
                 weeklySubscriptionID,
                 yearlySubscriptionID,
                 lifetimeSubscriptionID
-            ])
+            ]
+            
+            print("Attempting to load products with IDs:")
+            productIDs.forEach { print("- \($0)") }
+            
+            // Tüm ürünleri ID'lere göre yükle
+            let products = try await Product.products(for: productIDs)
             self.products = products
             print("Loaded \(products.count) products")
             
             // Debug için ürün bilgilerini yazdır
-            for product in products {
-                print("Product: \(product.id), \(product.displayName), \(product.displayPrice)")
+            if products.isEmpty {
+                print("WARNING: No products were loaded from App Store Connect!")
+                print("Make sure your product IDs are correctly configured in App Store Connect")
+                print("And that your app is using the correct Bundle ID")
+            } else {
+                print("Successfully loaded products:")
+                for product in products {
+                    print("Product: id=\(product.id), name=\(product.displayName), price=\(product.displayPrice)")
+                }
             }
         } catch {
-            print("Failed to load products: \(error)")
+            print("Failed to load products with error: \(error)")
+            print("Error description: \(error.localizedDescription)")
             self.products = []
         }
     }
@@ -108,7 +121,7 @@ class StoreKitHelper: ObservableObject {
                 let transaction = try checkVerified(result)
                 
                 // Abonelik ürünlerini kontrol et
-                if [weeklySubscriptionID, yearlySubscriptionID, lifetimeSubscriptionID].contains(transaction.productID) && !transaction.isUpgraded {
+                if [weeklySubscriptionID, yearlySubscriptionID, lifetimeSubscriptionID].contains(transaction.productID) {
                     // Revocation date varsa iptal edilmiş abonelik
                     if transaction.revocationDate == nil {
                         // Lifetime ürünün hiç sona erme tarihi olmaz
@@ -205,7 +218,7 @@ class StoreKitHelper: ObservableObject {
 }
 
 /// StoreKit ile ilgili özel hata tipleri
-enum StoreError: Error, LocalizedError {
+enum StoreError: Error, LocalizedError, Equatable {
     case productNotFound
     case failedVerification
     case userCancelled
@@ -227,6 +240,21 @@ enum StoreError: Error, LocalizedError {
             return "The transaction failed: \(error)"
         case .unknown:
             return "An unknown error occurred."
+        }
+    }
+    
+    static func == (lhs: StoreError, rhs: StoreError) -> Bool {
+        switch (lhs, rhs) {
+        case (.productNotFound, .productNotFound),
+             (.failedVerification, .failedVerification),
+             (.userCancelled, .userCancelled),
+             (.pending, .pending),
+             (.unknown, .unknown):
+            return true
+        case (.failedTransaction(let lhsError), .failedTransaction(let rhsError)):
+            return lhsError == rhsError
+        default:
+            return false
         }
     }
 } 

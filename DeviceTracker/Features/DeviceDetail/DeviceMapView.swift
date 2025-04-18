@@ -387,13 +387,13 @@ struct DeviceMapView: View {
         } else if name.contains("macbook") || name.contains("laptop") {
             return "laptopcomputer"
         } else if name.contains("airpods") || name.contains("headphone") || 
-                 name.contains("earpods") || name.contains("pod") {
+                 name.contains("earpods") || name.contains("pod") || name.contains("jbl") || name.contains("tune") {
             return "airpodspro"
         } else if name.contains("ipad") || name.contains("tablet") {
             return "ipad"
         } else if name.contains("watch") {
             return "applewatch"
-        } else if name.contains("jbl") || name.contains("tune") || name.contains("speaker") || name.contains("sound") {
+        } else if name.contains("speaker") || name.contains("sound") {
             return "hifispeaker.fill"
         }
         

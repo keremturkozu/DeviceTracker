@@ -405,14 +405,56 @@ struct PremiumView: View {
     func purchasePremium() {
         isLoading = true
         
+        // Önce ürünlerin yüklenip yüklenmediğini kontrol et
+        if helper.products.isEmpty {
+            // Ürün listesi boş - yükleme hatası olmuş olabilir
+            isLoading = false
+            errorMessage = "Could not load products. Please try again later."
+            
+            // Ürünleri yeniden yüklemeyi dene
+            Task {
+                await helper.loadProducts()
+                if !helper.products.isEmpty {
+                    // Ürünler başarıyla yüklendiyse hata mesajını temizle
+                    DispatchQueue.main.async {
+                        self.errorMessage = nil
+                    }
+                }
+            }
+            return
+        }
+        
         Task {
             do {
+                // Ürün ID'si içeren hata mesajları için
+                let selectedProductId = selectedPlan.productId
+                print("Attempting to purchase product with ID: \(selectedProductId)")
+                
+                // Seçilen ürünün gerçekten mevcut olup olmadığını kontrol et
+                let productExists = helper.products.contains(where: { $0.id == selectedProductId })
+                if !productExists {
+                    throw StoreError.productNotFound
+                }
+                
                 _ = try await helper.purchaseSubscription(type: selectedPlan)
+                
+                // İşlem başarılı olduysa
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                }
             } catch {
                 DispatchQueue.main.async {
-                    isLoading = false
-                    withAnimation {
-                        errorMessage = error.localizedDescription
+                    self.isLoading = false
+                    
+                    // Özel hata mesajları
+                    if error is StoreError {
+                        if let storeError = error as? StoreError, storeError == StoreError.productNotFound {
+                            self.errorMessage = "Could not find the selected product. Product ID: \(selectedPlan.productId)"
+                        } else {
+                            self.errorMessage = error.localizedDescription
+                        }
+                    } else {
+                        self.errorMessage = "Purchase failed: \(error.localizedDescription)"
                     }
                 }
             }

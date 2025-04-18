@@ -221,7 +221,7 @@ struct SignalView: View {
         } else if name.contains("macbook") || name.contains("laptop") {
             return "laptopcomputer"
         } else if name.contains("airpods") || name.contains("headphone") || name.contains("earphone") || 
-                  name.contains("buds") || name.contains("earpods") || 
+                  name.contains("buds") || name.contains("earpods") || name.contains("jbl") || name.contains("tune") ||
                   name.contains("beats") || name.contains("pod") || name.contains("earbuds") {
             return "airpodspro" // All headphone types use the same icon
         } else if name.contains("ipad") || name.contains("tablet") {
@@ -230,7 +230,7 @@ struct SignalView: View {
             return "applewatch"
         } else if name.contains("tv") || name.contains("television") {
             return "tv"
-        } else if name.contains("jbl") || name.contains("tune") || name.contains("speaker") || name.contains("sound") {
+        } else if name.contains("speaker") || name.contains("sound") {
             return "hifispeaker.fill"
         }
         
