@@ -7,6 +7,8 @@ struct RadarView: View {
     @State private var navigateToDetail = false
     @State private var navigateToChat = false
     @State private var showSettings = false
+    @State private var showPremium = false
+    @StateObject private var storeHelper = StoreKitHelper.shared
     
     var body: some View {
         NavigationStack {
@@ -76,7 +78,11 @@ struct RadarView: View {
                                             .contentShape(Rectangle())
                                             .onTapGesture {
                                                 selectedDevice = device
-                                                navigateToDetail = true
+                                                if storeHelper.isPremiumUser {
+                                                    navigateToDetail = true
+                                                } else {
+                                                    showPremium = true
+                                                }
                                             }
                                     }
                                 }
@@ -119,13 +125,10 @@ struct RadarView: View {
             .sheet(isPresented: $showSettings) {
                 SettingsView()
             }
-            .alert(item: Binding<RadarAlertItem?>(
-                get: {
-                    guard let errorMessage = viewModel.errorMessage else { return nil }
-                    return RadarAlertItem(message: errorMessage)
-                },
-                set: { _ in viewModel.errorMessage = nil }
-            )) { alert in
+            .sheet(isPresented: $showPremium) {
+                PremiumView()
+            }
+            .alert(item: $viewModel.alertItem) { alert in
                 Alert(
                     title: Text("Error"),
                     message: Text(alert.message),
@@ -143,7 +146,6 @@ struct RadarView: View {
 
 struct EnhancedRadarView: View {
     let devices: [Device]
-    
     @Environment(\.colorScheme) private var colorScheme
     @State private var radarAngle: Double = 0
     @State private var pulsateAnimation = false
@@ -323,7 +325,7 @@ struct EnhancedRadarView: View {
         let dy = devicePosition.y - radarCenter.y
         
         // Calculate distance from center to device
-        let distance = sqrt(dx*dx + dy*dy)
+        _ = sqrt(dx*dx + dy*dy)
         
         // Calculate angle in degrees
         let angle = atan2(dy, dx) * 180 / .pi

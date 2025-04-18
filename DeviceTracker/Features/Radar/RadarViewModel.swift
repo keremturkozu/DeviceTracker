@@ -10,7 +10,7 @@ class RadarViewModel: ObservableObject {
     // MARK: - Publishers
     @Published var devices: [Device] = []
     @Published var isScanning: Bool = false
-    @Published var errorMessage: String?
+    @Published var alertItem: RadarAlertItem?
     
     // MARK: - Private Properties
     private var cancellables = Set<AnyCancellable>()
@@ -54,13 +54,16 @@ class RadarViewModel: ObservableObject {
         
         bluetoothService.$errorMessage
             .receive(on: DispatchQueue.main)
-            .assign(to: &$errorMessage)
+            .compactMap { $0 }
+            .map { RadarAlertItem(message: $0) }
+            .assign(to: &$alertItem)
         
         // Handle Location service errors
         locationService.$errorMessage
             .receive(on: DispatchQueue.main)
             .compactMap { $0 }
-            .assign(to: &$errorMessage)
+            .map { RadarAlertItem(message: $0) }
+            .assign(to: &$alertItem)
     }
     
     private func requestPermissions() {

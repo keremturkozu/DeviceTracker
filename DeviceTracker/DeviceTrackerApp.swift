@@ -35,9 +35,20 @@ struct DeviceTrackerApp: App {
                 .modelContainer(sharedModelContainer)
                 .defaultAppFont() // SF Pro Rounded olarak ayarla
                 .task {
-                    // Uygulama başladığında StoreKit ile ürünleri yükle
+                    // StoreKit entegrasyonu
+                    // Önce ürünleri yükle
                     await storeKitHelper.loadProducts()
+                    
+                    // Satın alınmış ürünleri kontrol et
                     await storeKitHelper.updatePurchasedProducts()
+                    
+                    // App Store ile senkronize et, bazı durumlarda güncel verileri almak için gerekebilir
+                    try? await AppStore.sync()
+                    
+                    // Tekrar durumu kontrol et, sync'ten sonra güncellenmiş olabilir
+                    await storeKitHelper.updatePurchasedProducts()
+                    
+                    print("Premium status: \(storeKitHelper.isPremiumUser ? "Active" : "Not active")")
                 }
         }
     }

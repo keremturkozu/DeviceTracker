@@ -55,7 +55,7 @@ struct PremiumView: View {
     @State private var dismissTimerProgress: CGFloat = 0.0
     @State private var isLoading = false
     @State private var errorMessage: String? = nil
-    @State private var selectedPlan: PlanType = .yearly
+    @State private var selectedPlan: StoreKitHelper.SubscriptionType = .yearly
     @State private var animateOffer = false
     
     // App theme colors
@@ -67,6 +67,12 @@ struct PremiumView: View {
         case lifetime = "Lifetime"
         
         var price: String {
+            // Attempt to get the real price from StoreKit
+            if let product = StoreKitHelper.shared.products.first(where: { $0.id == self.subscriptionType.productId }) {
+                return product.displayPrice
+            }
+            
+            // Fallback prices if products aren't loaded yet
             switch self {
             case .weekly: return "$1.99"
             case .yearly: return "$21.99"
@@ -109,6 +115,15 @@ struct PremiumView: View {
                 return "\(savingsPercent)% Savings"
             case .lifetime:
                 return nil // Removed savings for lifetime
+            }
+        }
+        
+        // Convert to StoreKitHelper.SubscriptionType
+        var subscriptionType: StoreKitHelper.SubscriptionType {
+            switch self {
+            case .weekly: return .weekly
+            case .yearly: return .yearly
+            case .lifetime: return .lifetime
             }
         }
     }
@@ -276,9 +291,9 @@ struct PremiumView: View {
                                 ForEach(PlanType.allCases, id: \.rawValue) { plan in
                                     PlanSelectionCard(
                                         plan: plan,
-                                        isSelected: selectedPlan == plan,
+                                        isSelected: selectedPlan == plan.subscriptionType,
                                         action: {
-                                            selectedPlan = plan
+                                            selectedPlan = plan.subscriptionType
                                         }
                                     )
                                 }
@@ -392,7 +407,7 @@ struct PremiumView: View {
         
         Task {
             do {
-                _ = try await helper.purchasePremium()
+                _ = try await helper.purchaseSubscription(type: selectedPlan)
             } catch {
                 DispatchQueue.main.async {
                     isLoading = false
@@ -556,6 +571,7 @@ struct FeatureCard: View {
 
 struct SubscriptionInfoView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var helper = StoreKitHelper.shared
     
     var body: some View {
         NavigationStack {
@@ -564,9 +580,25 @@ struct SubscriptionInfoView: View {
                     Text("Subscription Details")
                         .font(.title2.weight(.bold))
                     
-                    Text("• Weekly subscription at $1.99.")
-                    Text("• Yearly subscription at $21.99.")
-                    Text("• Lifetime purchase at $44.99.")
+                    // Get the actual prices from StoreKit if available
+                    if let weeklyProduct = helper.products.first(where: { $0.id.contains("weekly") }) {
+                        Text("• Weekly subscription at \(weeklyProduct.displayPrice).")
+                    } else {
+                        Text("• Weekly subscription at $1.99.")
+                    }
+                    
+                    if let yearlyProduct = helper.products.first(where: { $0.id.contains("yearly") }) {
+                        Text("• Yearly subscription at \(yearlyProduct.displayPrice).")
+                    } else {
+                        Text("• Yearly subscription at $21.99.")
+                    }
+                    
+                    if let lifetimeProduct = helper.products.first(where: { $0.id.contains("lifetime") }) {
+                        Text("• Lifetime purchase at \(lifetimeProduct.displayPrice).")
+                    } else {
+                        Text("• Lifetime purchase at $44.99.")
+                    }
+                    
                     Text("• Payment will be charged to your Apple ID account at the confirmation of purchase.")
                     Text("• Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period.")
                     Text("• Account will be charged for renewal within 24 hours prior to the end of the current period.")

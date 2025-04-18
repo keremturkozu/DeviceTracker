@@ -7,8 +7,10 @@ class StoreKitHelper: ObservableObject {
     // Singleton pattern
     static let shared = StoreKitHelper()
     
-    // Ürün tanımlayıcıları
+    // Ürün tanımlayıcıları - App Store Connect'te tanımladığınız ID'lerle değiştirin
     private let weeklySubscriptionID = "com.yourcompany.devicetracker.weekly_premium"
+    private let yearlySubscriptionID = "com.yourcompany.devicetracker.yearly_premium"
+    private let lifetimeSubscriptionID = "com.yourcompany.devicetracker.lifetime_premium"
     
     // Ürünler
     @Published private(set) var products: [Product] = []
@@ -16,6 +18,19 @@ class StoreKitHelper: ObservableObject {
     
     /// App içi satın alımların durumunu izleyen property wrapper
     @AppStorage("isPremiumUser") private(set) var isPremiumUser: Bool = false
+    
+    // Abonelik tipi
+    enum SubscriptionType: String {
+        case weekly, yearly, lifetime
+        
+        var productId: String {
+            switch self {
+            case .weekly: return StoreKitHelper.shared.weeklySubscriptionID
+            case .yearly: return StoreKitHelper.shared.yearlySubscriptionID
+            case .lifetime: return StoreKitHelper.shared.lifetimeSubscriptionID
+            }
+        }
+    }
     
     // App Store ile aktif transaction listener'ı
     private var transactionListener: Task<Void, Error>?
@@ -62,7 +77,11 @@ class StoreKitHelper: ObservableObject {
     func loadProducts() async {
         do {
             // Tüm ürünleri ID'lere göre yükle
-            let products = try await Product.products(for: [weeklySubscriptionID])
+            let products = try await Product.products(for: [
+                weeklySubscriptionID,
+                yearlySubscriptionID,
+                lifetimeSubscriptionID
+            ])
             self.products = products
             print("Loaded \(products.count) products")
             
@@ -88,21 +107,22 @@ class StoreKitHelper: ObservableObject {
             do {
                 let transaction = try checkVerified(result)
                 
-                // Güncel StoreKit versiyonunda, abonelik durumunu revocationDate ve expirationDate ile kontrol ediyoruz
-                if transaction.productID == weeklySubscriptionID && !transaction.isUpgraded {
+                // Abonelik ürünlerini kontrol et
+                if [weeklySubscriptionID, yearlySubscriptionID, lifetimeSubscriptionID].contains(transaction.productID) && !transaction.isUpgraded {
                     // Revocation date varsa iptal edilmiş abonelik
                     if transaction.revocationDate == nil {
-                        // ExpirationDate kontrolü - nil veya gelecekte ise aktif abonelik
-                        if let expirationDate = transaction.expirationDate {
+                        // Lifetime ürünün hiç sona erme tarihi olmaz
+                        if transaction.productID == lifetimeSubscriptionID {
+                            purchasedIDs.insert(transaction.productID)
+                            isPremium = true
+                        } 
+                        // Abonelikler için sona erme tarihini kontrol et
+                        else if let expirationDate = transaction.expirationDate {
                             // Sona erme tarihi gelecekteyse aktif
                             if expirationDate > Date() {
                                 purchasedIDs.insert(transaction.productID)
                                 isPremium = true
                             }
-                        } else {
-                            // ExpirationDate yoksa bu ömür boyu satın alınmış bir ürün
-                            purchasedIDs.insert(transaction.productID)
-                            isPremium = true
                         }
                     }
                 }
@@ -115,16 +135,11 @@ class StoreKitHelper: ObservableObject {
         isPremiumUser = isPremium
     }
     
-    /// Bir ürünün satın alınma durumunu kontrol eder
-    func isPurchased(_ productID: String) -> Bool {
-        return purchasedProductIDs.contains(productID)
-    }
-    
-    /// Haftalık premium aboneliğini satın alır
+    /// Belirli bir abonelik tipini satın alır
     @MainActor
-    func purchasePremium() async throws -> Bool {
+    func purchaseSubscription(type: SubscriptionType) async throws -> Bool {
         // Ürünü bul
-        guard let product = products.first(where: { $0.id == weeklySubscriptionID }) else {
+        guard let product = products.first(where: { $0.id == type.productId }) else {
             throw StoreError.productNotFound
         }
         

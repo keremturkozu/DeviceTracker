@@ -207,19 +207,15 @@ struct DeviceMapView: View {
             
             // Ana thread'de çalıştır
             DispatchQueue.main.async {
-                // Position güncellemesini try-catch bloğu içine al
-                do {
-                    self.position = .camera(
-                        MapCamera(
-                            centerCoordinate: CLLocationCoordinate2D(latitude: midLat, longitude: midLon),
-                            distance: cameraDistance,
-                            heading: 0,
-                            pitch: 0
-                        )
+                // Position güncellemesi - try-catch gerekmez
+                self.position = .camera(
+                    MapCamera(
+                        centerCoordinate: CLLocationCoordinate2D(latitude: midLat, longitude: midLon),
+                        distance: cameraDistance,
+                        heading: 0,
+                        pitch: 0
                     )
-                } catch {
-                    print("Camera positioning error: \(error.localizedDescription)")
-                }
+                )
             }
         }
     }
