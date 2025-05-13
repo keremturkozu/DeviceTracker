@@ -16,12 +16,12 @@ struct DeviceMapView: View {
         self.coordinate = coordinate
         self.deviceName = deviceName
         
-        // Direkt cihazın konumuna odaklanacak şekilde ayarla
+        // Directly focus on the device's location with a closer zoom level
         _position = State(
             initialValue: .camera(
                 MapCamera(
                     centerCoordinate: coordinate,
-                    distance: 500, // Yakın bir mesafeden başla
+                    distance: 300, // Start with a closer view
                     heading: 0,
                     pitch: 0
                 )
@@ -34,10 +34,10 @@ struct DeviceMapView: View {
             mainMapView
         }
         .onAppear {
-            // Kullanıcı konumunu hemen al
+            // Get user location immediately
             requestUserLocation()
             
-            // Cihaz annotasyonunu hemen seç
+            // Select device annotation immediately
             selectedItem = DeviceAnnotation(id: "device", coordinate: coordinate, title: deviceName)
         }
     }
@@ -47,9 +47,9 @@ struct DeviceMapView: View {
         Map(position: $position, selection: $selectedItem) {
             // Device marker
             Annotation(deviceName, coordinate: coordinate) {
-                // Cihaz işaretçisi - daha modern görünüm
+                // Device marker with modern appearance
                 ZStack {
-                    // Dış halka - pulsating effect için
+                    // Outer circle for pulsating effect
                     if isPinpointActive {
                         Circle()
                             .fill(Color.red.opacity(0.3))
@@ -57,13 +57,13 @@ struct DeviceMapView: View {
                             .scaleEffect(1.3)
                     }
                     
-                    // Orta halka
+                    // Middle circle
                     Circle()
                         .fill(Color.white)
                         .frame(width: 40, height: 40)
                         .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
                     
-                    // İç icon
+                    // Inner icon
                     Image(systemName: getDeviceIcon(for: deviceName))
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(isPinpointActive ? .red : Theme.primary)
@@ -75,9 +75,9 @@ struct DeviceMapView: View {
             // User's location
             UserAnnotation()
             
-            // Kullanıcı ve cihaz arasındaki mesafeyi çizgi ile göster - daha modern
+            // Show distance between user and device with a line
             if let userLocation = userLocation {
-                // Daha şık çizgi ve gradient efekti
+                // Stylish line with gradient effect
                 MapPolyline(coordinates: [userLocation, coordinate])
                     .stroke(
                         LinearGradient(
@@ -126,33 +126,33 @@ struct DeviceMapView: View {
                     withAnimation(.easeInOut(duration: 0.5)) {
                         isPinpointActive.toggle()
                         
-                        // Pinpoint aktifse tam olarak cihazın üzerine odaklan
+                        // If pinpoint is active, focus exactly on the device
                         if isPinpointActive {
-                            // Delay ekleyerek olası race condition'ı önle
+                            // Add a small delay to avoid race condition
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                 self.position = .camera(
                                     MapCamera(
                                         centerCoordinate: coordinate,
-                                        distance: 200, // Daha yakın
+                                        distance: 200, // Closer view
                                         heading: 0,
-                                        pitch: 45 // Açıyı azalttım
+                                        pitch: 45 // Reduced angle
                                     )
                                 )
                             }
                         } else {
-                            // Normal görünüme dön
+                            // Return to normal view
                             if let userLoc = userLocation {
-                                // Delay ekle
+                                // Add delay
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                     showBothLocations(userLocation: userLoc, deviceLocation: coordinate)
                                 }
                             } else {
-                                // Delay ekle
+                                // Add delay
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                     self.position = .camera(
                                         MapCamera(
                                             centerCoordinate: coordinate,
-                                            distance: 500,
+                                            distance: 300.0, // More consistent with initial view
                                             heading: 0,
                                             pitch: 0
                                         )
@@ -174,40 +174,46 @@ struct DeviceMapView: View {
         }
     }
     
-    // Kullanıcı konumunu isteme
+    // Request user location
     private func requestUserLocation() {
         let locationManager = CLLocationManager()
         
         if locationManager.authorizationStatus == .authorizedWhenInUse || 
            locationManager.authorizationStatus == .authorizedAlways {
             if let location = locationManager.location?.coordinate {
+                // Update user location immediately 
                 self.userLocation = location
                 
-                // Hem kullanıcı hem de cihazı gösterecek şekilde ayarla
-                showBothLocations(userLocation: location, deviceLocation: coordinate)
+                // Adjust the camera only if we're not already in pinpoint mode
+                if !isPinpointActive {
+                    // Show both locations, but ensure device location is more prominent
+                    DispatchQueue.main.async {
+                        showBothLocations(userLocation: location, deviceLocation: coordinate)
+                    }
+                }
             }
         }
     }
     
-    // Her iki konumu da gösterecek şekilde haritayı ayarla
+    // Adjust map to show both locations
     private func showBothLocations(userLocation: CLLocationCoordinate2D, deviceLocation: CLLocationCoordinate2D) {
-        // Pinpoint modunda değilse iki konumu birden göster
+        // Only show both locations if not in pinpoint mode
         if !isPinpointActive {
-            // İki nokta arasındaki orta nokta
+            // Calculate midpoint
             let midLat = (userLocation.latitude + deviceLocation.latitude) / 2
             let midLon = (userLocation.longitude + deviceLocation.longitude) / 2
             
-            // Aralarındaki mesafeyi hesapla
+            // Calculate distance between points
             let userPoint = MKMapPoint(userLocation)
             let devicePoint = MKMapPoint(deviceLocation)
             let distance = userPoint.distance(to: devicePoint)
             
-            // Mesafeye göre kamera mesafesini ayarla (sınırlamalarla)
+            // Adjust camera distance based on the gap (with constraints)
             let cameraDistance = min(max(1000, distance * 1.5), 50000)
             
-            // Ana thread'de çalıştır
+            // Run on main thread
             DispatchQueue.main.async {
-                // Position güncellemesi - try-catch gerekmez
+                // Update position
                 self.position = .camera(
                     MapCamera(
                         centerCoordinate: CLLocationCoordinate2D(latitude: midLat, longitude: midLon),
@@ -226,7 +232,7 @@ struct DeviceMapView: View {
         if let selectedItem = selectedItem {
             VStack(spacing: 8) {
                 HStack(alignment: .center, spacing: 14) {
-                    // Laptop icon
+                    // Device icon
                     Image(systemName: getDeviceIcon(for: deviceName))
                         .font(.system(size: 20))
                         .foregroundColor(.white)
@@ -240,18 +246,35 @@ struct DeviceMapView: View {
                             .font(.system(size: 18, weight: .semibold, design: .rounded))
                             .foregroundStyle(Color.primary)
                         
-                        // Mesafe bilgisini ekle
+                        // Distance information with optimized display
                         if let userLocation = userLocation {
                             let userPoint = MKMapPoint(userLocation)
                             let devicePoint = MKMapPoint(coordinate)
-                            let distance = userPoint.distance(to: devicePoint)
+                            let distanceInMeters = userPoint.distance(to: devicePoint)
                             
-                            if distance < 1000 {
-                                Text("Approximately \(Int(distance)) meters away")
+                            // Use similar format as in the radar view for consistency
+                            if distanceInMeters < 5 {
+                                Text("Very close")
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundStyle(Color.green)
+                            } else if distanceInMeters < 10 {
+                                Text("Within 10 meters")
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundStyle(Color.green)
+                            } else if distanceInMeters < 20 {
+                                Text("Nearby")
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundStyle(Color.orange)
+                            } else if distanceInMeters < 100 {
+                                Text("Approximately \(Int(distanceInMeters)) meters away")
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundStyle(Color.secondary)
+                            } else if distanceInMeters < 1000 {
+                                Text("Several meters away")
                                     .font(.system(size: 14, weight: .medium, design: .rounded))
                                     .foregroundStyle(Color.secondary)
                             } else {
-                                Text("Approximately \(String(format: "%.1f", distance/1000)) km away")
+                                Text("\(String(format: "%.1f", distanceInMeters/1000)) km away")
                                     .font(.system(size: 14, weight: .medium, design: .rounded))
                                     .foregroundStyle(Color.secondary)
                             }
@@ -294,33 +317,33 @@ struct DeviceMapView: View {
             withAnimation(.easeInOut(duration: 0.5)) {
                 isPinpointActive.toggle()
                 
-                // Pinpoint aktifse tam olarak cihazın üzerine odaklan
+                // If pinpoint is active, focus exactly on the device
                 if isPinpointActive {
-                    // Delay ekleyerek olası race condition'ı önle
+                    // Add a small delay to avoid race condition
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         self.position = .camera(
                             MapCamera(
                                 centerCoordinate: coordinate,
-                                distance: 200, // Daha yakın
+                                distance: 200, // Closer view
                                 heading: 0,
-                                pitch: 45 // Açıyı azalttım
+                                pitch: 45 // Reduced angle
                             )
                         )
                     }
                 } else {
-                    // Normal görünüme dön
+                    // Return to normal view
                     if let userLoc = userLocation {
-                        // Delay ekle
+                        // Add delay
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             showBothLocations(userLocation: userLoc, deviceLocation: coordinate)
                         }
                     } else {
-                        // Delay ekle
+                        // Add delay
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             self.position = .camera(
                                 MapCamera(
                                     centerCoordinate: coordinate,
-                                    distance: 500,
+                                    distance: 300.0, // More consistent with initial view
                                     heading: 0,
                                     pitch: 0
                                 )
