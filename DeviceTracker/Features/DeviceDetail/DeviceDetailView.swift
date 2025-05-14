@@ -254,3 +254,4 @@ struct DeviceAlertItem: Identifiable {
         DeviceDetailView(device: Device(name: "MacBook Pro", distance: 0.8))
     }
 } 
+ 

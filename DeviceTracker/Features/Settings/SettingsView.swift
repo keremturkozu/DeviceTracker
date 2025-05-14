@@ -100,7 +100,7 @@ struct SettingsView: View {
                     // ABOUT
                     Section {
                         NavigationLink {
-                            WebViewContainer(urlString: "https://example.com/privacy")
+                            WebViewContainer(urlString: "https://keremturkozu.github.io/bluetooth-device-tracker-privacy.html")
                                 .navigationTitle("Privacy Policy")
                         } label: {
                             Text("Privacy Policy")
@@ -108,7 +108,7 @@ struct SettingsView: View {
                         }
                         
                         NavigationLink {
-                            WebViewContainer(urlString: "https://example.com/terms")
+                            WebViewContainer(urlString: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
                                 .navigationTitle("Terms of Service")
                         } label: {
                             Text("Terms of Service")

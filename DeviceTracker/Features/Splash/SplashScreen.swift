@@ -18,7 +18,12 @@ struct SplashScreen: View {
                 .onAppear {
                     // Her uygulama açılışında premium kullanıcı değilse ekranı göster
                     if !isPremiumUser {
-                        // Ekranı hemen göster, gecikme olmadan
+                        showPremium = true
+                    }
+                }
+                .onChange(of: hasCompletedOnboarding) { _, newValue in
+                    // Onboarding yeni tamamlandıysa ve premium değilse hemen göster
+                    if newValue && !isPremiumUser {
                         showPremium = true
                     }
                 }
@@ -31,7 +36,7 @@ struct SplashScreen: View {
                 VStack(spacing: 20) {
                     // App logo with soft edges and stroke
                     ZStack {
-                        Image("AppLogo")
+                        Image("AppIcon")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 150, height: 150)

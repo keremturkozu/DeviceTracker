@@ -68,13 +68,6 @@ struct PremiumView: View {
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
                             .padding(.top, 32)
-                        Text("Enjoy all premium features for the ultimate tracking experience.")
-                            .font(.system(size: 15, weight: .medium, design: .rounded))
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, 18)
-                            .padding(.top, 1)
                         
                         // Feature list
                         VStack(spacing: 0) {
@@ -107,6 +100,21 @@ struct PremiumView: View {
                                 planCard(plan: plan, isSelected: selectedPlan == plan) {
                                     selectedPlan = plan
                                 }
+                            }
+                            Button(action: {
+                                Task {
+                                    do {
+                                        let restored = try await helper.restorePurchases()
+                                        // Optionally show a confirmation
+                                    } catch {
+                                        // Optionally show an error
+                                    }
+                                }
+                            }) {
+                                Text("Restore Purchases")
+                                    .font(.footnote)
+                                    .foregroundColor(.gray)
+                                    .padding(.top, 2)
                             }
                         }
                         .padding(.horizontal, 12)
@@ -201,7 +209,7 @@ struct PremiumView: View {
             planPeriod = "/week"
             planSavings = "50% OFF"
             badgeText = "Limited Offer"
-            cardBackground = AnyView(AnimatedOrangeBackground(isSelected: isSelected))
+            cardBackground = AnyView(WeeklyPlanBackground(isSelected: isSelected))
         case .yearly:
             let product = helper.products.first(where: { $0.id == plan.productId })
             planName = "Yearly"
@@ -297,22 +305,18 @@ struct PremiumView: View {
     }
 }
 
-// Animated orange background for weekly plan
-struct AnimatedOrangeBackground: View {
-    @State private var animate = false
+// Weekly plan background
+struct WeeklyPlanBackground: View {
     var isSelected: Bool
     var body: some View {
         LinearGradient(
             gradient: Gradient(colors: [
-                Color.orange.opacity(isSelected ? 0.35 : 0.22),
-                Color.yellow.opacity(isSelected ? 0.22 : 0.12),
-                Color.orange.opacity(isSelected ? 0.18 : 0.10)
+                Color.orange.opacity(isSelected ? 0.18 : 0.10),
+                Color.white
             ]),
-            startPoint: animate ? .topLeading : .bottomTrailing,
-            endPoint: animate ? .bottomTrailing : .topLeading
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
-        .animation(Animation.linear(duration: 2.5).repeatForever(autoreverses: true), value: animate)
-        .onAppear { animate = true }
     }
 }
 

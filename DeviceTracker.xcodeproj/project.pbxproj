@@ -269,6 +269,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DeviceTracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Bluetooth Device Tracker";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth Always Usage";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "DeviceTracker uygulaması cihazınızın konumunu sürekli takip edebilmek için arka planda konum erişimi istiyor.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "DeviceTracker uygulaması Bluetooth cihazınızı bulmak için konumunuza erişmek istiyor";
@@ -305,6 +307,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DeviceTracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Bluetooth Device Tracker";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth Always Usage";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "DeviceTracker uygulaması cihazınızın konumunu sürekli takip edebilmek için arka planda konum erişimi istiyor.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "DeviceTracker uygulaması Bluetooth cihazınızı bulmak için konumunuza erişmek istiyor";

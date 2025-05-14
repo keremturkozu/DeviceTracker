@@ -981,3 +981,4 @@ extension DeviceDetailViewModel: CBCentralManagerDelegate {
         }
     }
 } 
+ 
