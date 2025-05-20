@@ -68,6 +68,13 @@ struct PremiumView: View {
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
                             .padding(.top, 32)
+                        // Açıklama metni
+                        Text("Get unlimited access to all features. Upgrade to Premium for full device tracking, instant alerts, and more.")
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 8)
                         
                         // Feature list
                         VStack(spacing: 0) {
@@ -204,26 +211,23 @@ struct PremiumView: View {
         switch plan {
         case .weekly:
             let product = helper.products.first(where: { $0.id == plan.productId })
-            planName = "Weekly"
+            planName = "Weekly Premium"
             planPrice = product?.displayPrice ?? "$1.99"
             planPeriod = "/week"
-            planSavings = "50% OFF"
+            planSavings = nil
             badgeText = "Limited Offer"
             cardBackground = AnyView(WeeklyPlanBackground(isSelected: isSelected))
         case .yearly:
             let product = helper.products.first(where: { $0.id == plan.productId })
-            planName = "Yearly"
+            planName = "Yearly Premium"
             planPrice = product?.displayPrice ?? "$21.99"
             planPeriod = "/year"
-            let yearlyTotal = 21.99
-            let weeklyTotal = 1.99 * 52
-            let savingsPercent = Int((1 - (yearlyTotal / weeklyTotal)) * 100)
-            planSavings = "\(savingsPercent)% Savings"
+            planSavings = nil
             badgeText = nil
             cardBackground = AnyView(Color.white)
         case .lifetime:
             let product = helper.products.first(where: { $0.id == plan.productId })
-            planName = "Lifetime"
+            planName = "Lifetime Access"
             planPrice = product?.displayPrice ?? "$44.99"
             planPeriod = "/lifetime"
             planSavings = nil
@@ -244,14 +248,6 @@ struct PremiumView: View {
                                 .padding(.horizontal, 7)
                                 .padding(.vertical, 1.5)
                                 .background(Capsule().fill(Color.orange))
-                        }
-                        if let planSavings = planSavings {
-                            Text(planSavings)
-                                .font(.system(size: 11, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 1.5)
-                                .background(Capsule().fill(appBlue))
                         }
                     }
                     HStack(spacing: 4) {
